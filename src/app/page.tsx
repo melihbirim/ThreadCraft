@@ -4,34 +4,59 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { pipeline } from '@huggingface/transformers'
 
-function splitTextToThread(text: string): string[] {
-  if (!text.trim()) return ['']
-  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || []
-  const tweets: string[] = []
-  let current = ''
+// Utility to clean up newlines in text
+function cleanNewlines(text: string): string {
+  // Replace 3 or more newlines with two newlines
+  // This preserves intentional paragraph breaks while cleaning up excessive spacing
+  return text
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/^\s+/, '')  // Trim start
+    .replace(/\s+$/, ''); // Trim end
+}
 
-  for (let sentence of sentences) {
-    sentence = sentence.trim()
-    if (sentence.length > 280) {
-      // Split long sentence
-      for (let i = 0; i < sentence.length; i += 280) {
+// Provided smart thread splitting function (renamed for consistency)
+function splitTextToThread(
+  text: string,
+  maxLength: number = 280,
+  options: { emojiPrefix?: string } = {}
+): string[] {
+  const { emojiPrefix = '' } = options;
+  // Split by paragraphs first
+  const paragraphs = text.split(/\n{2,}/).map((p: string) => p.trim()).filter(Boolean);
+  const rawThreads = [];
+  for (const para of paragraphs) {
+    const sentences = para.match(/[^.!?]+[.!?]?\s*/g) || [];
+    let current = '';
+    for (const sentence of sentences) {
+      if ((current + sentence).length <= maxLength) {
+        current += sentence;
+      } else {
         if (current) {
-          tweets.push(current)
-          current = ''
+          rawThreads.push(current.trim());
+          current = sentence;
+        } else {
+          // Sentence too long: split by words
+          const words = sentence.split(' ');
+          let chunk = '';
+          for (const word of words) {
+            if ((chunk + word + ' ').length <= maxLength) {
+              chunk += word + ' ';
+            } else {
+              rawThreads.push(chunk.trim());
+              chunk = word + ' ';
+            }
+          }
+          if (chunk) rawThreads.push(chunk.trim());
+          current = '';
         }
-        tweets.push(sentence.slice(i, i + 280))
       }
-      continue
     }
-    if ((current + ' ' + sentence).trim().length <= 280) {
-      current = (current ? current + ' ' : '') + sentence
-    } else {
-      if (current) tweets.push(current)
-      current = sentence
-    }
+    if (current) rawThreads.push(current.trim());
   }
-  if (current) tweets.push(current)
-  return tweets
+  // Remove empty tweets
+  const filtered = rawThreads.filter(Boolean);
+  // Remove numbering/emoji for now (handled in UI)
+  return filtered;
 }
 
 const AVATAR = '/threadcraft-logo.png'
@@ -60,6 +85,14 @@ export default function Home() {
       if (ref) {
         ref.style.height = 'auto';
         ref.style.height = ref.scrollHeight + 'px';
+        // Update the connection line height for the tweet above
+        if (idx < thread.length - 1) {
+          const tweetContainer = ref.closest('.relative');
+          const connectionLine = tweetContainer?.querySelector('[style*="top: 36px"]') as HTMLElement;
+          if (connectionLine) {
+            connectionLine.style.height = `${ref.scrollHeight + 12}px`;
+          }
+        }
       }
     });
   }, [thread]);
@@ -81,17 +114,35 @@ export default function Home() {
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const pasted = e.clipboardData.getData('text')
-    setFullText(pasted)
-    setTimeout(() => splitIntoThread(pasted), 0)
+    const cleaned = cleanNewlines(pasted)
+    setFullText(cleaned)
+    setTimeout(() => splitIntoThread(cleaned), 0)
     e.preventDefault()
     // Run sentiment analysis on paste
-    await analyzeMainSentiment(pasted)
+    await analyzeMainSentiment(cleaned)
   }
 
   const updateTweet = (index: number, content: string) => {
-    const newThread = [...thread]
-    newThread[index] = content
-    setThread(newThread)
+    const newThread = [...thread];
+    newThread[index] = content;
+    setThread(newThread);
+    
+    // Immediate height adjustment
+    setTimeout(() => {
+      const ref = textareaRefs.current[index];
+      if (ref) {
+        ref.style.height = 'auto';
+        ref.style.height = ref.scrollHeight + 'px';
+        // Update connection line height
+        if (index < thread.length - 1) {
+          const tweetContainer = ref.closest('.relative');
+          const connectionLine = tweetContainer?.querySelector('[style*="top: 36px"]') as HTMLElement;
+          if (connectionLine) {
+            connectionLine.style.height = `${ref.scrollHeight + 12}px`;
+          }
+        }
+      }
+    }, 0);
   }
 
   const addTweet = () => {
@@ -170,13 +221,14 @@ export default function Home() {
               className="w-full min-h-[8rem] p-4 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50 resize-none shadow-sm"
               value={fullText}
               onChange={(e) => {
-                setFullText(e.target.value)
+                const cleaned = cleanNewlines(e.target.value)
+                setFullText(e.target.value) // Use original value instead of cleaned for better editing experience
                 const mainTextarea = textareaRefs.current[0];
                 if (mainTextarea) {
                   mainTextarea.style.height = 'auto';
                   mainTextarea.style.height = mainTextarea.scrollHeight + 'px';
                 }
-                splitIntoThread(e.target.value)
+                splitIntoThread(cleaned)
               }}
               onPaste={handlePaste}
               placeholder="Write your thread here or paste your content..."
@@ -195,37 +247,37 @@ export default function Home() {
           <div className="space-y-4 flex flex-col items-center">
             <h2 className="text-xl font-semibold mb-4 w-full text-center">Thread Preview</h2>
             {thread.map((tweet, index) => (
-              <div key={index} className="relative flex flex-col items-center w-full" style={{maxWidth: '368px', marginLeft: 'auto', marginRight: 'auto'}}>
-                <div className="flex flex-col items-center w-full">
-                  {/* Connection line above except for first */}
-                  {index > 0 && (
-                    <div style={{height: '24px', width: '2px', background: '#e5e7eb', position: 'absolute', top: '-24px', left: '50%', transform: 'translateX(-50%)', zIndex: 0}} />
-                  )}
-                  {/* Logo Icon */}
-                  <img src={AVATAR} alt="logo" className="w-9 h-9 rounded-full object-cover bg-gray-100 border border-gray-200 mt-1 z-10" />
-                </div>
-                <div className="flex space-x-3 w-full relative z-10 py-2">
-                  <div className="flex-1">
-                    <div className="flex items-center space mb-1">
-                      <span className="font-semibold text-gray-900 text-sm">{USERNAME}</span>
-                      <span className="text-gray-500 text-sm">{HANDLE}</span>
-                      <span className="text-gray-400 text-xs">· 1m</span>
-                    </div>
-                    {/* Auto-resizing textarea, no border, no background, flexible height */}
-                    <textarea
-                      ref={el => { textareaRefs.current[index] = el; }}
-                      className="w-full p-0 bg-transparent border-none focus:ring-0 focus:outline-none text-gray-900 resize-none min-h-[2.5rem] leading-relaxed"
-                      value={tweet}
-                      onChange={(e) => updateTweet(index, e.target.value)}
-                      maxLength={280}
-                      rows={1}
-                      style={{fontFamily: 'inherit', overflow: 'hidden', height: 'auto', fontSize: '15.5px'}}
-                    />
-                    {/* Thread indicator */}
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-500">🧵 {index + 1}/{thread.length}</span>
-                      <span className="text-xs text-gray-400">{tweet.length}/280</span>
-                    </div>
+              <div key={index} className="relative flex w-full items-start" style={{maxWidth: '368px', marginLeft: 'auto', marginRight: 'auto'}}>
+                {/* Connection line above except for first */}
+                {index > 0 && (
+                  <div style={{height: '24px', width: '2px', background: '#e5e7eb', position: 'absolute', top: '-24px', left: '27px', zIndex: 0}} />
+                )}
+                {/* Connection line below except for last */}
+                {index < thread.length - 1 && (
+                  <div style={{height: '100%', width: '2px', background: '#e5e7eb', position: 'absolute', top: '50px', left: '27px', zIndex: 0}} />
+                )}
+                {/* Logo Icon */}
+                <img src={AVATAR} alt="logo" className="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200 mt-1 ml-2 flex-shrink-0" style={{alignSelf: 'flex-start'}} />
+                <div className="flex-1 pl-3 py-2">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="font-semibold text-gray-900 text-sm">{USERNAME}</span>
+                    <span className="text-gray-500 text-sm">{HANDLE}</span>
+                    <span className="text-gray-400 text-xs">· 1m</span>
+                  </div>
+                  {/* Auto-resizing textarea, no border, no background, flexible height */}
+                  <textarea
+                    ref={el => { textareaRefs.current[index] = el; }}
+                    className="w-full p-0 bg-transparent border-none focus:ring-0 focus:outline-none text-gray-900 resize-none min-h-[2.5rem] leading-relaxed"
+                    value={tweet}
+                    onChange={(e) => updateTweet(index, e.target.value)}
+                    maxLength={280}
+                    rows={1}
+                    style={{fontFamily: 'inherit', overflow: 'hidden', height: 'auto', fontSize: '15.5px'}}
+                  />
+                  {/* Thread indicator */}
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-gray-500">🧵 {index + 1}/{thread.length}</span>
+                    <span className="text-xs text-gray-400">{tweet.length}/280</span>
                   </div>
                 </div>
               </div>
