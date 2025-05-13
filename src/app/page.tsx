@@ -140,6 +140,18 @@ export default function Home() {
     setTimeout(() => setPublishSuccess(false), 2500)
   }
 
+  // Debounce sentiment analysis for main textarea
+  useEffect(() => {
+    if (!fullText.trim()) {
+      setMainSentiment(null)
+      return;
+    }
+    const timeout = setTimeout(() => {
+      analyzeMainSentiment(fullText)
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [fullText])
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-3xl mx-auto">
@@ -157,13 +169,14 @@ export default function Home() {
               ref={el => { textareaRefs.current[0] = el; }}
               className="w-full min-h-[8rem] p-4 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-gray-50 resize-none shadow-sm"
               value={fullText}
-              onChange={async (e) => {
+              onChange={(e) => {
                 setFullText(e.target.value)
                 const mainTextarea = textareaRefs.current[0];
                 if (mainTextarea) {
                   mainTextarea.style.height = 'auto';
                   mainTextarea.style.height = mainTextarea.scrollHeight + 'px';
                 }
+                splitIntoThread(e.target.value)
               }}
               onPaste={handlePaste}
               placeholder="Write your thread here or paste your content..."
@@ -178,57 +191,61 @@ export default function Home() {
           </div>
         )}
         {/* Thread preview */}
-        <div className="space-y-4 flex flex-col items-center">
-          <h2 className="text-xl font-semibold mb-4 w-full text-center">Thread Preview</h2>
-          {thread.map((tweet, index) => (
-            <div key={index} className="relative flex flex-col items-center w-full" style={{maxWidth: '368px', marginLeft: 'auto', marginRight: 'auto'}}>
-              {/* Connection line above except for first */}
-              {index > 0 && (
-                <div className="absolute -top-6 left-8 w-0.5 h-6 bg-gray-200 z-0" />
-              )}
-              <div className="flex space-x-3 w-full relative z-10 py-2">
-                {/* Logo Icon */}
-                <img src={AVATAR} alt="logo" className="w-9 h-9 rounded-full object-cover bg-gray-100 border border-gray-200 mt-1" />
-                <div className="flex-1">
-                  <div className="flex items-center space mb-1">
-                    <span className="font-semibold text-gray-900 text-sm">{USERNAME}</span>
-                    <span className="text-gray-500 text-sm">{HANDLE}</span>
-                    <span className="text-gray-400 text-xs">· 1m</span>
-                  </div>
-                  {/* Auto-resizing textarea, no border, no background, flexible height */}
-                  <textarea
-                    ref={el => { textareaRefs.current[index] = el; }}
-                    className="w-full p-0 bg-transparent border-none focus:ring-0 focus:outline-none text-gray-900 resize-none min-h-[2.5rem] leading-relaxed"
-                    value={tweet}
-                    onChange={(e) => updateTweet(index, e.target.value)}
-                    maxLength={280}
-                    rows={1}
-                    style={{fontFamily: 'inherit', overflow: 'hidden', height: 'auto', fontSize: '15.5px'}}
-                  />
-                  {/* Thread indicator */}
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-gray-500">🧵 {index + 1}/{thread.length}</span>
-                    <span className="text-xs text-gray-400">{tweet.length}/280</span>
+        {fullText.trim() && (
+          <div className="space-y-4 flex flex-col items-center">
+            <h2 className="text-xl font-semibold mb-4 w-full text-center">Thread Preview</h2>
+            {thread.map((tweet, index) => (
+              <div key={index} className="relative flex flex-col items-center w-full" style={{maxWidth: '368px', marginLeft: 'auto', marginRight: 'auto'}}>
+                <div className="flex flex-col items-center w-full">
+                  {/* Connection line above except for first */}
+                  {index > 0 && (
+                    <div style={{height: '24px', width: '2px', background: '#e5e7eb', position: 'absolute', top: '-24px', left: '50%', transform: 'translateX(-50%)', zIndex: 0}} />
+                  )}
+                  {/* Logo Icon */}
+                  <img src={AVATAR} alt="logo" className="w-9 h-9 rounded-full object-cover bg-gray-100 border border-gray-200 mt-1 z-10" />
+                </div>
+                <div className="flex space-x-3 w-full relative z-10 py-2">
+                  <div className="flex-1">
+                    <div className="flex items-center space mb-1">
+                      <span className="font-semibold text-gray-900 text-sm">{USERNAME}</span>
+                      <span className="text-gray-500 text-sm">{HANDLE}</span>
+                      <span className="text-gray-400 text-xs">· 1m</span>
+                    </div>
+                    {/* Auto-resizing textarea, no border, no background, flexible height */}
+                    <textarea
+                      ref={el => { textareaRefs.current[index] = el; }}
+                      className="w-full p-0 bg-transparent border-none focus:ring-0 focus:outline-none text-gray-900 resize-none min-h-[2.5rem] leading-relaxed"
+                      value={tweet}
+                      onChange={(e) => updateTweet(index, e.target.value)}
+                      maxLength={280}
+                      rows={1}
+                      style={{fontFamily: 'inherit', overflow: 'hidden', height: 'auto', fontSize: '15.5px'}}
+                    />
+                    {/* Thread indicator */}
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-gray-500">🧵 {index + 1}/{thread.length}</span>
+                      <span className="text-xs text-gray-400">{tweet.length}/280</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-          <Button
-            onClick={addTweet}
-            variant="outline"
-            className="w-full max-w-xs mx-auto mt-2"
-          >
-            Add Tweet
-          </Button>
-          {/* Publish Button */}
-          <Button
-            className="w-full max-w-xs mx-auto mt-4 bg-primary text-white text-lg py-3 rounded-xl hover:bg-primary/90 transition"
-            onClick={() => setShowPublishModal(true)}
-          >
-            Publish
-          </Button>
-        </div>
+            ))}
+            <Button
+              onClick={addTweet}
+              variant="outline"
+              className="w-full max-w-xs mx-auto mt-2"
+            >
+              Add Tweet
+            </Button>
+            {/* Publish Button */}
+            <Button
+              className="w-full max-w-xs mx-auto mt-4 bg-primary text-white text-lg py-3 rounded-xl hover:bg-primary/90 transition"
+              onClick={() => setShowPublishModal(true)}
+            >
+              Publish
+            </Button>
+          </div>
+        )}
         {/* Publish Modal */}
         {showPublishModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
