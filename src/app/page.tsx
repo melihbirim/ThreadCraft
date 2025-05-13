@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { pipeline } from '@huggingface/transformers'
 
 // Utility to clean up newlines in text
 function cleanNewlines(text: string): string {
@@ -82,26 +81,29 @@ const LAYOUT = {
   }
 } as const;
 
+const INITIAL_CONTENT = `🧵 Ready to craft an epic thread?
+
+Start with a bang! Share your insights, tell a story, or teach something amazing.
+
+Pro tips:
+• Hook your readers with a strong opening
+• Break down complex ideas into digestible parts
+• Add relevant images to boost engagement
+• End with a clear call-to-action
+
+Need inspiration? Try writing about:
+'Here's what I learned from...'
+'The ultimate guide to...'
+'5 mind-blowing facts about...'`
+
 export default function Home() {
-  const [thread, setThread] = useState<string[]>([''])
-  const [fullText, setFullText] = useState('')
-  const [loading, setLoading] = useState<{[k:number]:boolean}>({})
-  const [sentiments, setSentiments] = useState<{[k:number]:string}>({})
+  const [thread, setThread] = useState<string[]>(() => splitTextToThread(INITIAL_CONTENT))
+  const [fullText, setFullText] = useState(INITIAL_CONTENT)
   const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([])
-  const [sentimentPipeline, setSentimentPipeline] = useState<any>(null)
-  const [pipelineLoading, setPipelineLoading] = useState(false)
-
-  // NEW: State for main text sentiment
-  const [mainSentiment, setMainSentiment] = useState<string | null>(null)
-  const [mainSentimentLoading, setMainSentimentLoading] = useState(false)
-
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [publishSuccess, setPublishSuccess] = useState(false)
-
-  // Add images state
   const [tweetImages, setTweetImages] = useState<{[key: number]: TweetImage}>({})
 
-  // Add height adjustment utility function
   const adjustTweetHeight = (index: number) => {
     const ref = textareaRefs.current[index];
     if (!ref) return;
@@ -126,7 +128,6 @@ export default function Home() {
     }
   };
 
-  // Update useEffect to use the new function
   useEffect(() => {
     const adjustAllHeights = () => {
       thread.forEach((_, idx) => adjustTweetHeight(idx));
@@ -149,32 +150,35 @@ export default function Home() {
     };
   }, [thread, tweetImages]);
 
-  // Load the pipeline on first use
-  const loadPipeline = async () => {
-    if (!sentimentPipeline && !pipelineLoading) {
-      setPipelineLoading(true)
-      const pipe = await pipeline('sentiment-analysis')
-      setSentimentPipeline(() => pipe)
-      setPipelineLoading(false)
-    }
-  }
-
   const splitIntoThread = (text?: string) => {
     const input = typeof text === 'string' ? text : fullText
     setThread(splitTextToThread(input))
   }
 
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    e.preventDefault()
     const pasted = e.clipboardData.getData('text')
     const cleaned = cleanNewlines(pasted)
-    setFullText(cleaned)
-    setTimeout(() => splitIntoThread(cleaned), 0)
-    e.preventDefault()
-    // Run sentiment analysis on paste
-    await analyzeMainSentiment(cleaned)
+    
+    // Get cursor position
+    const textarea = e.currentTarget
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    
+    // Combine the text before cursor + pasted text + text after cursor
+    const newText = fullText.substring(0, start) + cleaned + fullText.substring(end)
+    setFullText(newText)
+    
+    // Update thread after paste
+    setTimeout(() => {
+      splitIntoThread(newText)
+      
+      // Set cursor position after pasted text
+      textarea.selectionStart = start + cleaned.length
+      textarea.selectionEnd = start + cleaned.length
+    }, 0)
   }
 
-  // Update the updateTweet function
   const updateTweet = (index: number, content: string) => {
     const newThread = [...thread];
     newThread[index] = content;
@@ -188,7 +192,6 @@ export default function Home() {
     setThread([...thread, ''])
   }
 
-  // Update removeTweet to clean up images
   const removeTweet = (index: number) => {
     if (tweetImages[index]?.type === 'local') {
       URL.revokeObjectURL(tweetImages[index].url)
@@ -202,56 +205,6 @@ export default function Home() {
     })
   }
 
-  // Local sentiment analysis using transformers
-  const analyzeSentiment = async (index: number) => {
-    await loadPipeline()
-    if (!sentimentPipeline) return
-    setLoading(l => ({...l, [index]: true}))
-    try {
-      const result = await sentimentPipeline(thread[index])
-      setSentiments(s => ({...s, [index]: result[0]?.label || ''}))
-    } catch (e) {
-      alert('Error analyzing sentiment')
-    }
-    setLoading(l => ({...l, [index]: false}))
-  }
-
-  // Modified analyzeMainSentiment to accept optional text
-  const analyzeMainSentiment = async (textOverride?: string) => {
-    await loadPipeline()
-    if (!sentimentPipeline) return
-    setMainSentimentLoading(true)
-    try {
-      const result = await sentimentPipeline(textOverride ?? fullText)
-      setMainSentiment(result[0]?.label || '')
-    } catch (e) {
-      alert('Error analyzing sentiment')
-    }
-    setMainSentimentLoading(false)
-  }
-
-  // Handle publish
-  const handlePublish = () => {
-    setShowPublishModal(false)
-    setPublishSuccess(true)
-    setThread([''])
-    setFullText('')
-    setTimeout(() => setPublishSuccess(false), 2500)
-  }
-
-  // Debounce sentiment analysis for main textarea
-  useEffect(() => {
-    if (!fullText.trim()) {
-      setMainSentiment(null)
-      return;
-    }
-    const timeout = setTimeout(() => {
-      analyzeMainSentiment(fullText)
-    }, 500)
-    return () => clearTimeout(timeout)
-  }, [fullText])
-
-  // Update handleImageUpload to use the new function
   const handleImageUpload = (index: number, file: File) => {
     if (file) {
       const url = URL.createObjectURL(file)
@@ -274,6 +227,27 @@ export default function Home() {
       delete newImages[index]
       return newImages
     })
+  }
+
+  // Function to encode tweet text for URLs
+  const encodeTweet = (text: string) => {
+    return encodeURIComponent(text).replace(/'/g, "%27");
+  }
+
+  // Function to publish thread to X
+  const publishToX = async () => {
+    if (thread.length === 0) return;
+    
+    // Show coming soon message for now
+    setShowPublishModal(false);
+    alert("Coming soon! We're working on X API integration for proper thread posting. This will require you to authenticate with your X account.");
+    
+    // For development/testing: log the thread that would be posted
+    console.log('Thread to be posted:', thread.map((tweet, index) => ({
+      text: tweet,
+      threadPosition: `${index + 1}/${thread.length}`,
+      mediaIds: tweetImages[index] ? [tweetImages[index].url] : []
+    })));
   }
 
   return (
@@ -303,23 +277,29 @@ export default function Home() {
                     const mainTextarea = textareaRefs.current[0];
                     if (mainTextarea) {
                       mainTextarea.style.height = 'auto';
-                      mainTextarea.style.height = `${mainTextarea.scrollHeight}px`;
+                      mainTextarea.style.height = `${Math.max(mainTextarea.scrollHeight, 128)}px`;
                     }
                     splitIntoThread(cleaned)
                   }}
                   onPaste={handlePaste}
-                  placeholder="Write your thread here or paste your content..."
+                  placeholder="🧵 Ready to craft an epic thread?
+
+Start with a bang! Share your insights, tell a story, or teach something amazing.
+
+Pro tips:
+• Hook your readers with a strong opening
+• Break down complex ideas into digestible parts
+• Add relevant images to boost engagement
+• End with a clear call-to-action
+
+Need inspiration? Try writing about:
+'Here's what I learned from...'
+'The ultimate guide to...'
+'5 mind-blowing facts about...'"
                   style={{fontFamily: 'inherit', overflow: 'hidden', height: 'auto', fontSize: '15.5px'}}
                 />
               </div>
             </div>
-
-            {/* Main text analysis results */}
-            {mainSentiment && (
-              <div className="p-4 bg-gray-100 rounded shadow-sm">
-                <span className="font-semibold">Sentiment:</span> {mainSentiment}
-              </div>
-            )}
 
             {/* Action Buttons */}
             <div className="flex gap-4">
@@ -432,22 +412,31 @@ export default function Home() {
       {showPublishModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-4">Confirm Publish</h3>
-            <p className="mb-6 text-gray-700">Are you sure you want to publish this thread?</p>
+            <h3 className="text-xl font-bold mb-4">Publish Thread to X</h3>
+            <p className="mb-6 text-gray-700">
+              To publish this thread, you'll need to authenticate with your X account.
+              This feature is coming soon!
+            </p>
             <div className="flex gap-2">
-              <Button className="flex-1" onClick={handlePublish}>Yes, Publish</Button>
-              <Button className="flex-1" variant="outline" onClick={() => setShowPublishModal(false)}>Cancel</Button>
+              <Button 
+                className="flex-1 bg-[#1DA1F2] text-white hover:bg-[#1a8cd8] transition"
+                onClick={publishToX}
+              >
+                Connect X Account
+              </Button>
+              <Button 
+                className="flex-1" 
+                variant="outline" 
+                onClick={() => setShowPublishModal(false)}
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Success Toast */}
-      {publishSuccess && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50">
-          Thread published successfully!
-        </div>
-      )}
+      {/* Success Toast - removed for now */}
     </div>
   )
 } 
