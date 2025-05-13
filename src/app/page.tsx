@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
+import { signIn, signOut, useSession } from 'next-auth/react'
 
 // Utility to clean up newlines in text
 function cleanNewlines(text: string): string {
@@ -97,6 +98,8 @@ Need inspiration? Try writing about:
 '5 mind-blowing facts about...'`
 
 export default function Home() {
+  const { data: session, status } = useSession()
+  const [isPublishing, setIsPublishing] = useState(false)
   const [thread, setThread] = useState<string[]>(() => splitTextToThread(INITIAL_CONTENT))
   const [fullText, setFullText] = useState(INITIAL_CONTENT)
   const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([])
@@ -234,28 +237,84 @@ export default function Home() {
     return encodeURIComponent(text).replace(/'/g, "%27");
   }
 
-  // Function to publish thread to X
+  // Function to handle Twitter authentication
+  const handleTwitterAuth = async () => {
+    if (session) {
+      await signOut()
+    } else {
+      await signIn('twitter')
+    }
+  }
+
+  // Update the publish function to use our new API
   const publishToX = async () => {
-    if (thread.length === 0) return;
-    
-    // Show coming soon message for now
-    setShowPublishModal(false);
-    alert("Coming soon! We're working on X API integration for proper thread posting. This will require you to authenticate with your X account.");
-    
-    // For development/testing: log the thread that would be posted
-    console.log('Thread to be posted:', thread.map((tweet, index) => ({
-      text: tweet,
-      threadPosition: `${index + 1}/${thread.length}`,
-      mediaIds: tweetImages[index] ? [tweetImages[index].url] : []
-    })));
+    if (!session) {
+      signIn('twitter')
+      return
+    }
+
+    if (thread.length === 0) return
+
+    try {
+      setIsPublishing(true)
+      const response = await fetch('/api/threads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          thread,
+          images: Object.entries(tweetImages).map(([index, image]) => ({
+            index: parseInt(index),
+            url: image.url,
+          })),
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to post thread')
+      }
+
+      setShowPublishModal(false)
+      setPublishSuccess(true)
+      setTimeout(() => {
+        setPublishSuccess(false)
+        setThread([''])
+        setFullText('')
+        setTweetImages({})
+      }, 2500)
+    } catch (error) {
+      console.error('Publishing error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to publish thread')
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <img src={AVATAR} alt="ThreadCraft Logo" className="w-8 h-8 rounded-full bg-gray-200" /> ThreadCraft
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <img src={AVATAR} alt="ThreadCraft Logo" className="w-8 h-8 rounded-full bg-gray-200" /> 
+            ThreadCraft
+          </h1>
+          <Button
+            onClick={handleTwitterAuth}
+            className={`${
+              session ? 'bg-red-500 hover:bg-red-600' : 'bg-[#1DA1F2] hover:bg-[#1a8cd8]'
+            } text-white transition`}
+          >
+            {status === 'loading' ? (
+              'Loading...'
+            ) : session ? (
+              'Sign Out'
+            ) : (
+              'Connect Twitter'
+            )}
+          </Button>
+        </div>
         <p className="text-gray-600 mb-8">Write and split your X threads with ease</p>
 
         {/* Two-column layout */}
@@ -412,22 +471,27 @@ Need inspiration? Try writing about:
       {showPublishModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-4">Publish Thread to X</h3>
+            <h3 className="text-xl font-bold mb-4">Publish Thread to Twitter</h3>
             <p className="mb-6 text-gray-700">
-              To publish this thread, you'll need to authenticate with your X account.
-              This feature is coming soon!
+              {!session ? (
+                'Please connect your Twitter account to publish threads.'
+              ) : (
+                `Ready to publish your thread of ${thread.length} tweets!`
+              )}
             </p>
             <div className="flex gap-2">
               <Button 
                 className="flex-1 bg-[#1DA1F2] text-white hover:bg-[#1a8cd8] transition"
                 onClick={publishToX}
+                disabled={isPublishing || !session}
               >
-                Connect X Account
+                {isPublishing ? 'Publishing...' : !session ? 'Connect Twitter' : 'Publish Thread'}
               </Button>
               <Button 
                 className="flex-1" 
                 variant="outline" 
                 onClick={() => setShowPublishModal(false)}
+                disabled={isPublishing}
               >
                 Cancel
               </Button>
@@ -436,7 +500,12 @@ Need inspiration? Try writing about:
         </div>
       )}
 
-      {/* Success Toast - removed for now */}
+      {/* Success Toast */}
+      {publishSuccess && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50">
+          Thread published successfully!
+        </div>
+      )}
     </div>
   )
 } 
