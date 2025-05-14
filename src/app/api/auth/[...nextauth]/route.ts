@@ -13,12 +13,14 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
+      username?: string | null;
     }
   }
 
   interface User {
     accessToken?: string;
     refreshToken?: string;
+    username?: string;
   }
 }
 
@@ -62,6 +64,7 @@ const handler = NextAuth({
           name: profile.data.name,
           email: profile.data.email,
           image: profile.data.profile_image_url,
+          username: profile.data.username,
         }
       },
     }),
@@ -169,6 +172,7 @@ const handler = NextAuth({
         user: {
           ...session.user,
           id: token.sub,
+          username: (token.user as any)?.username || null,
         },
       };
     },
