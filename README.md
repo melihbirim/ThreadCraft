@@ -7,6 +7,7 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
 - **Write Posts**: Compose and edit your X posts with our intuitive editor. In-Progress
 - **Schedule Posts**: Plan and schedule your posts for optimal engagement. Planned
 - **Analyze Performance**: Track and analyze your post performance metrics. Planned
+- **AI-Powered**: Generate and improve threads using XAI (Vercel AI). In-Progress
 
 ## Getting Started
 
@@ -46,6 +47,15 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
       - `tweet.write`
       - `users.read`
       - `offline.access`
+
+   To get XAI access:
+   1. Go to the [Vercel Dashboard](https://vercel.com/dashboard)
+   2. Select your project
+   3. Go to the "Settings" tab
+   4. Navigate to "AI" in the sidebar
+   5. Enable AI features
+   6. Select "XAI" as your AI provider
+   7. The API key will be automatically configured for your frontend
 
 4. **Run the development server**:
    ```bash
