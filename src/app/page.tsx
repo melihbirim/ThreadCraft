@@ -237,18 +237,26 @@ export default function Home() {
     return encodeURIComponent(text).replace(/'/g, "%27");
   }
 
-  // Function to handle Twitter authentication
-  const handleTwitterAuth = async () => {
-    if (session) {
-      await signOut()
-    } else {
-      await signIn('twitter')
+  // Function to handle X authentication
+  const handleXAuth = async () => {
+    try {
+      if (session) {
+        // Call signOut with callbackUrl and proper options to ensure cookies are cleared
+        await signOut({ 
+          callbackUrl: '/',
+          redirect: true
+        })
+      } else {
+        await signIn('twitter')
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
     }
-  }
+  };
 
   // Update the publish function to use our new API
   const publishToX = async () => {
-    if (!session) {
+    if (!session?.accessToken) {
       signIn('twitter')
       return
     }
@@ -301,17 +309,22 @@ export default function Home() {
             ThreadCraft
           </h1>
           <Button
-            onClick={handleTwitterAuth}
+            onClick={handleXAuth}
             className={`${
-              session ? 'bg-red-500 hover:bg-red-600' : 'bg-[#1DA1F2] hover:bg-[#1a8cd8]'
-            } text-white transition`}
+              session ? 'bg-black hover:bg-gray-900' : 'bg-black hover:bg-gray-900'
+            } text-white transition flex items-center gap-2`}
           >
             {status === 'loading' ? (
               'Loading...'
             ) : session ? (
-              'Sign Out'
+              'Log out'
             ) : (
-              'Connect Twitter'
+              <>
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                Log in with X
+              </>
             )}
           </Button>
         </div>
@@ -471,21 +484,28 @@ Need inspiration? Try writing about:
       {showPublishModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full">
-            <h3 className="text-xl font-bold mb-4">Publish Thread to Twitter</h3>
+            <h3 className="text-xl font-bold mb-4">Publish Thread to X</h3>
             <p className="mb-6 text-gray-700">
               {!session ? (
-                'Please connect your Twitter account to publish threads.'
+                'Please log in with X to publish threads.'
               ) : (
                 `Ready to publish your thread of ${thread.length} tweets!`
               )}
             </p>
             <div className="flex gap-2">
               <Button 
-                className="flex-1 bg-[#1DA1F2] text-white hover:bg-[#1a8cd8] transition"
+                className="flex-1 bg-black text-white hover:bg-gray-900 transition flex items-center justify-center gap-2"
                 onClick={publishToX}
                 disabled={isPublishing || !session}
               >
-                {isPublishing ? 'Publishing...' : !session ? 'Connect Twitter' : 'Publish Thread'}
+                {isPublishing ? 'Publishing...' : !session ? (
+                  <>
+                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    Log in with X
+                  </>
+                ) : 'Publish Thread'}
               </Button>
               <Button 
                 className="flex-1" 
