@@ -10,8 +10,8 @@ export interface Draft {
   id: string
   content: string
   title?: string
-  createdAt: number
-  updatedAt: number
+  createdAt: string
+  updatedAt: string
   images: {[key: number]: TweetImage}
 }
 
