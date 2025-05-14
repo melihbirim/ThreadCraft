@@ -7,6 +7,9 @@ interface ThreadEditorProps {
   setFullText: (text: string) => void
   onSplit: (text: string) => void
   onPublish: () => void
+  onAIGenerate?: () => void
+  isGenerating?: boolean
+  showAIButton?: boolean
 }
 
 const PLACEHOLDER = `🧵 Ready to craft an epic thread?
@@ -24,7 +27,15 @@ Need inspiration? Try writing about:
 'The ultimate guide to...'
 '5 mind-blowing facts about...'`
 
-export function ThreadEditor({ fullText, setFullText, onSplit, onPublish }: ThreadEditorProps) {
+export function ThreadEditor({ 
+  fullText, 
+  setFullText, 
+  onSplit, 
+  onPublish,
+  onAIGenerate,
+  isGenerating,
+  showAIButton 
+}: ThreadEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -95,13 +106,32 @@ export function ThreadEditor({ fullText, setFullText, onSplit, onPublish }: Thre
       </div>
 
       {/* Action Buttons */}
-      <div className="flex">
+      <div className="flex gap-2">
         <Button
-          className="w-full bg-black text-white hover:bg-gray-900 transition rounded-full text-lg font-bold py-3"
+          className="flex-1 bg-black text-white hover:bg-gray-900 transition rounded-full text-lg font-bold py-3"
           onClick={onPublish}
         >
           Post
         </Button>
+        
+        {showAIButton && onAIGenerate && (
+          <Button
+            className="flex-1 bg-purple-600 text-white hover:bg-purple-700 transition rounded-full text-lg font-bold py-3 relative"
+            onClick={onAIGenerate}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <span className="opacity-0">Improve with AI</span>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              </>
+            ) : (
+              'Improve with AI'
+            )}
+          </Button>
+        )}
       </div>
     </div>
   )

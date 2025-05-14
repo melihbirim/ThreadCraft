@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { Header } from '@/components/Header'
 import { ThreadEditor } from '@/components/ThreadEditor'
 import { ThreadPreview } from '@/components/ThreadPreview'
 import { PublishModal } from '@/components/PublishModal'
+import { Sidebar } from '@/components/Sidebar'
 import { splitTextToThread } from '@/lib/utils'
-
-interface TweetImage {
-  url: string
-  type: 'local'
-}
+import { generateAIContent } from '@/lib/ai'
+import { saveDraft, updateDraft } from '@/lib/drafts'
+import { getStoredApiKey, setStoredApiKey } from '@/lib/storage'
+import { AISettings, Draft, TweetImage } from '@/types'
 
 const INITIAL_CONTENT = `🧵 Ready to craft an epic thread?
 
@@ -36,6 +36,48 @@ export default function Home() {
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [publishSuccess, setPublishSuccess] = useState(false)
   const [tweetImages, setTweetImages] = useState<{[key: number]: TweetImage}>({})
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [currentDraftId, setCurrentDraftId] = useState<string>()
+  const [error, setError] = useState<string | null>(null)
+  const [aiSettings, setAiSettings] = useState<AISettings>({
+    apiKey: '',
+    tone: 'professional',
+    useEmojis: true,
+    aiRate: 50
+  })
+
+  // Load stored API key on mount
+  useEffect(() => {
+    const storedApiKey = getStoredApiKey()
+    if (storedApiKey) {
+      setAiSettings(prev => ({ ...prev, apiKey: storedApiKey }))
+    }
+  }, [])
+
+  // Handle AI settings changes
+  const handleAISettingsChange = (newSettings: AISettings) => {
+    setAiSettings(newSettings)
+    // Store API key when it changes
+    if (newSettings.apiKey !== aiSettings.apiKey) {
+      setStoredApiKey(newSettings.apiKey)
+    }
+  }
+
+  // Auto-save draft when content changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (fullText.trim() && fullText !== INITIAL_CONTENT) {
+        if (currentDraftId) {
+          updateDraft(currentDraftId, fullText, tweetImages)
+        } else {
+          const draft = saveDraft(fullText, tweetImages)
+          setCurrentDraftId(draft.id)
+        }
+      }
+    }, 1000) // Save after 1 second of no typing
+
+    return () => clearTimeout(timeoutId)
+  }, [fullText, tweetImages, currentDraftId])
 
   const handleImageUpload = (index: number, file: File) => {
     if (file) {
@@ -62,6 +104,44 @@ export default function Home() {
     const newThread = [...thread]
     newThread[index] = content
     setThread(newThread)
+  }
+
+  const handleDraftSelect = (draft: Draft) => {
+    setFullText(draft.content)
+    setTweetImages(draft.images)
+    setCurrentDraftId(draft.id)
+    setThread(splitTextToThread(draft.content))
+  }
+
+  const handleNewThread = () => {
+    // Clear current draft
+    setCurrentDraftId(undefined)
+    // Reset content to initial template
+    setFullText(INITIAL_CONTENT)
+    // Clear images
+    setTweetImages({})
+    // Reset thread
+    setThread(splitTextToThread(INITIAL_CONTENT))
+  }
+
+  const handleAIGenerate = async () => {
+    if (!aiSettings.apiKey || !fullText) {
+      setError('Please enter your API key first')
+      return
+    }
+
+    try {
+      setIsGenerating(true)
+      setError(null)
+      const improvedText = await generateAIContent(fullText, aiSettings)
+      setFullText(improvedText)
+      setThread(splitTextToThread(improvedText))
+    } catch (error) {
+      console.error('AI generation error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to generate AI content')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const publishToX = async () => {
@@ -100,6 +180,7 @@ export default function Home() {
         setThread([''])
         setFullText('')
         setTweetImages({})
+        setCurrentDraftId(undefined)
       }, 2500)
     } catch (error) {
       console.error('Publishing error:', error)
@@ -110,29 +191,46 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto">
-        <Header />
-        <p className="text-gray-600 mb-8">Write and split your X threads with ease</p>
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <Sidebar 
+        aiSettings={aiSettings} 
+        onAISettingsChange={handleAISettingsChange}
+        onDraftSelect={handleDraftSelect}
+        currentDraftId={currentDraftId}
+        onNewThread={handleNewThread}
+      />
 
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left column - Editor */}
-          <ThreadEditor
-            fullText={fullText}
-            setFullText={setFullText}
-            onSplit={(text) => setThread(splitTextToThread(text))}
-            onPublish={() => setShowPublishModal(true)}
-          />
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-7xl mx-auto">
+            <Header />
+            <p className="text-gray-600 mb-8">Write and split your X threads with ease</p>
 
-          {/* Right column - Preview */}
-          <ThreadPreview
-            thread={thread}
-            tweetImages={tweetImages}
-            onImageUpload={handleImageUpload}
-            onImageRemove={handleImageRemove}
-            onTweetUpdate={handleTweetUpdate}
-          />
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left column - Editor */}
+              <ThreadEditor
+                fullText={fullText}
+                setFullText={setFullText}
+                onSplit={(text) => setThread(splitTextToThread(text))}
+                onPublish={() => setShowPublishModal(true)}
+                onAIGenerate={handleAIGenerate}
+                isGenerating={isGenerating}
+                showAIButton={!!aiSettings.apiKey}
+              />
+
+              {/* Right column - Preview */}
+              <ThreadPreview
+                thread={thread}
+                tweetImages={tweetImages}
+                onImageUpload={handleImageUpload}
+                onImageRemove={handleImageRemove}
+                onTweetUpdate={handleTweetUpdate}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -144,6 +242,18 @@ export default function Home() {
         isPublishing={isPublishing}
         threadLength={thread.length}
       />
+
+      {/* Error Toast */}
+      {error && (
+        <div 
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2"
+          onClick={() => setError(null)}
+          style={{ cursor: 'pointer' }}
+        >
+          <span>{error}</span>
+          <button className="ml-2 hover:text-gray-200">✕</button>
+        </div>
+      )}
 
       {/* Success Toast */}
       {publishSuccess && (
