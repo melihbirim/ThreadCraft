@@ -9,5 +9,6 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  background: #FFFFFF;
+  font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
 } 

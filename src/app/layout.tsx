@@ -1,12 +1,16 @@
-import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Metadata } from 'next'
+import ClientLayout from './ClientLayout'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'ThreadCraft - Write, Schedule, and Analyze X Posts',
   description: 'A free, open-source tool for writing, scheduling, and analyzing X posts',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
@@ -16,13 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
       <body className={inter.className}>
-        <main className="min-h-screen bg-gray-50">
+        <ClientLayout>
           {children}
-        </main>
+        </ClientLayout>
       </body>
     </html>
   )
