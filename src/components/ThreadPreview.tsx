@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { TweetImage } from '@/types'
 
 interface ThreadPreviewProps {
   thread: string[]
@@ -7,11 +8,6 @@ interface ThreadPreviewProps {
   onImageUpload: (index: number, file: File) => void
   onImageRemove: (index: number) => void
   onTweetUpdate: (index: number, content: string) => void
-}
-
-interface TweetImage {
-  url: string
-  type: 'local'
 }
 
 const LAYOUT = {

@@ -32,4 +32,29 @@
 ### Planned
 - Thread drafts & templates
 - Scheduled posting
-- Analytics dashboard 
+- Analytics dashboard
+
+## [0.2.0] - 2024-05-15
+
+### Added
+- XAI Integration with Grok models
+- Local storage for API key persistence
+- Draft saving functionality
+- Loading states and improved error handling
+- Enhanced AI content generation
+
+### Changed
+- Migrated from OpenAI to XAI SDK (@ai-sdk/xai)
+- Improved thread formatting and content guidelines
+- Enhanced UI/UX with loading spinners and toast notifications
+- Updated API key management system
+
+### Fixed
+- Error handling in AI generation
+- Loading state visualization
+- Thread formatting consistency
+
+### Removed
+- OpenAI integration
+- Thread count markers (1/, 🧵)
+- Unsupported 'reasoning_effort' parameter 
