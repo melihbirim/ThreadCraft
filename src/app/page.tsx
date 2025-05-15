@@ -42,6 +42,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [aiSettings, setAiSettings] = useState<AISettings>({
     apiKey: '',
+    model: 'grok-2-1212',
     tone: 'professional',
     useEmojis: true,
     aiRate: 50
@@ -223,13 +224,13 @@ export default function Home() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-8">
-          <div className="max-w-7xl mx-auto">
+      <div className="flex-1 h-[calc(100vh-4rem)]">
+        <div className="container mx-auto px-6 py-8 h-full">
+          <div className="max-w-7xl mx-auto h-full">
             {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
               {/* Left column - Editor */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 overflow-auto">
                 <ThreadEditor
                   fullText={fullText}
                   setFullText={setFullText}
@@ -242,7 +243,7 @@ export default function Home() {
               </div>
 
               {/* Right column - Preview */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 overflow-auto">
                 <ThreadPreview
                   thread={thread}
                   tweetImages={tweetImages}

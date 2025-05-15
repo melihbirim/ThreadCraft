@@ -63,8 +63,8 @@ export function ThreadEditor({
   }
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="h-full flex flex-col">
+      <div className="flex-1">
         <div className="flex items-center justify-between mb-3">
           <label className="text-lg font-semibold text-gray-900">
             Write your thread
@@ -73,10 +73,10 @@ export function ThreadEditor({
             {fullText.length} characters
           </span>
         </div>
-        <div className="grid">
+        <div className="grid h-[calc(100%-2rem)]">
           <textarea
             ref={textareaRef}
-            className="w-full min-h-[24rem] p-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 resize-none shadow-sm h-auto overflow-hidden transition-colors duration-200"
+            className="w-full h-full p-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 resize-none shadow-sm transition-colors duration-200"
             value={fullText}
             onChange={(e) => {
               const cleaned = cleanNewlines(e.target.value)
@@ -89,8 +89,6 @@ export function ThreadEditor({
               fontFamily: 'inherit',
               fontSize: '15.5px',
               lineHeight: '1.5',
-              minHeight: '24rem',
-              height: 'auto',
               gridArea: '1 / 1 / 2 / 2',
             }}
           />
@@ -111,7 +109,7 @@ export function ThreadEditor({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 mt-4 sticky bottom-0 bg-white pt-4 border-t">
         <Button
           className="flex-1 bg-black text-white hover:bg-gray-900 transition rounded-xl text-[15px] font-semibold py-3 shadow-sm"
           onClick={onPublish}
