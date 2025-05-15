@@ -1,4 +1,5 @@
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 import { Metadata } from 'next'
 import ClientLayout from './ClientLayout'
@@ -24,6 +25,7 @@ export default function RootLayout({
         <ClientLayout>
           {children}
         </ClientLayout>
+        <Analytics />
       </body>
     </html>
   )
