@@ -3,6 +3,15 @@ import { getToken } from 'next-auth/jwt';
 import { headers } from 'next/headers';
 import { postThread } from '@/lib/api/x';
 
+interface ExtendedToken {
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  user?: {
+    username?: string;
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({
@@ -33,73 +42,56 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Get token from the request
-    const token = await getToken({
-      req,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    // Get the session token from the request
+    const token = await getToken({ req }) as ExtendedToken;
 
+    // Log token validation
     console.log('POST /api/threads - Token validation:', {
       exists: !!token,
       hasAccessToken: !!token?.accessToken,
-      error: token?.error,
+      error: undefined,
+      tokenData: token
     });
-    
-    if (!token) {
+
+    // Check if user is authenticated
+    if (!token?.accessToken) {
       return NextResponse.json(
         { error: 'Unauthorized - Please sign in' },
         { status: 401 }
       );
     }
 
-    if (token.error === 'RefreshAccessTokenError') {
-      return NextResponse.json(
-        { error: 'Session expired - Please sign in again' },
-        { status: 401 }
-      );
-    }
+    // Get request body
+    const body = await req.json();
+    const { thread, images } = body;
 
-    if (!token.accessToken) {
-      console.error('Missing access token in request:', {
-        hasToken: !!token,
-        error: token.error,
-      });
+    // Validate request body
+    if (!thread || !Array.isArray(thread) || thread.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid session - Please sign in again' },
-        { status: 401 }
-      );
-    }
-
-    const { thread, images } = await req.json();
-
-    if (!Array.isArray(thread) || thread.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid thread format - Thread must be a non-empty array' },
+        { error: 'Invalid request - Thread is required' },
         { status: 400 }
       );
     }
 
-    const accessToken = token.accessToken as string;
+    // Log attempt to post thread
     console.log('Attempting to post thread with token:', {
-      tokenPrefix: accessToken.substring(0, 10) + '...',
+      tokenPrefix: token.accessToken.substring(0, 10) + '...',
       threadLength: thread.length,
-      hasImages: !!images?.length,
+      hasImages: !!images?.length
     });
-    
+
+    // Post thread to X
     const result = await postThread({
       thread,
       images,
-      accessToken,
+      accessToken: token.accessToken,
     });
-
-    console.log('Thread posted successfully:', result);
 
     return NextResponse.json(result);
   } catch (error) {
     console.error('Thread posting error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to post thread';
     return NextResponse.json(
-      { error: errorMessage },
+      { error: error instanceof Error ? error.message : 'Failed to post thread' },
       { status: 500 }
     );
   }

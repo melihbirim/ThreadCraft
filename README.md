@@ -7,6 +7,7 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
 - **Write Posts**: Compose and edit your X posts with our intuitive editor. In-Progress
 - **Schedule Posts**: Plan and schedule your posts for optimal engagement. Planned
 - **Analyze Performance**: Track and analyze your post performance metrics. Planned
+- **AI-Powered**: Generate and improve threads using XAI (Vercel AI). In-Progress
 
 ## Getting Started
 
@@ -37,15 +38,20 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
    To get X (Twitter) credentials:
    1. Go to the [X Developer Portal](https://developer.twitter.com/en/portal/dashboard)
    2. Create a new project and app
-   3. Enable OAuth 2.0
-   4. Add the following callback URL:
+   3. Enable OAuth 2.0 (User Authentication)
+   4. Set App Permissions to "Read and Write"
+   5. Add the following callback URL:
       - Development: `http://localhost:3000/api/auth/callback/twitter`
       - Production: `https://your-domain.com/api/auth/callback/twitter`
-   5. Request the following scopes:
-      - `tweet.read`
-      - `tweet.write`
-      - `users.read`
-      - `offline.access`
+
+   To get XAI access:
+   1. Go to the [Vercel Dashboard](https://vercel.com/dashboard)
+   2. Select your project
+   3. Go to the "Settings" tab
+   4. Navigate to "AI" in the sidebar
+   5. Enable AI features
+   6. Select "XAI" as your AI provider
+   7. The API key will be automatically configured for your frontend
 
 4. **Run the development server**:
    ```bash
@@ -78,7 +84,7 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
      ```
    Note: Do NOT set NEXTAUTH_URL in Vercel as it's automatically handled
 
-4. Update your X (Twitter) OAuth 2.0 settings:
+4. Update your X (Twitter) OAuth settings:
    - Go to the X Developer Portal
    - Add your Vercel deployment URL to the callback URLs:
      `https://your-project.vercel.app/api/auth/callback/twitter`
@@ -94,10 +100,10 @@ When deploying to other platforms:
 1. Set the following environment variables:
    - `NEXTAUTH_SECRET`: A secure random string (different from development)
    - `NEXTAUTH_URL`: Your production URL (e.g., https://your-domain.com)
-   - `TWITTER_CLIENT_ID`: Your X (Twitter) OAuth 2.0 client ID
-   - `TWITTER_CLIENT_SECRET`: Your X (Twitter) OAuth 2.0 client secret
+   - `TWITTER_CLIENT_ID`: Your X (Twitter) OAuth 1.0a client ID
+   - `TWITTER_CLIENT_SECRET`: Your X (Twitter) OAuth 1.0a client secret
 
-2. Update your X (Twitter) OAuth 2.0 callback URLs to include your production domain.
+2. Update your X (Twitter) OAuth callback URLs to include your production domain.
 
 ## Technologies Used
 
