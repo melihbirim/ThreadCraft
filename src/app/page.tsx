@@ -212,7 +212,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
       <Sidebar 
         aiSettings={aiSettings} 
@@ -224,35 +224,39 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-6 py-8">
           <div className="max-w-7xl mx-auto">
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left column - Editor */}
-              <ThreadEditor
-                fullText={fullText}
-                setFullText={setFullText}
-                onSplit={(text) => setThread(splitTextToThread(text))}
-                onPublish={() => setShowPublishModal(true)}
-                onAIGenerate={handleAIGenerate}
-                isGenerating={isGenerating}
-                showAIButton={!!aiSettings.apiKey}
-              />
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <ThreadEditor
+                  fullText={fullText}
+                  setFullText={setFullText}
+                  onSplit={(text) => setThread(splitTextToThread(text))}
+                  onPublish={() => setShowPublishModal(true)}
+                  onAIGenerate={handleAIGenerate}
+                  isGenerating={isGenerating}
+                  showAIButton={!!aiSettings.apiKey}
+                />
+              </div>
 
               {/* Right column - Preview */}
-              <ThreadPreview
-                thread={thread}
-                tweetImages={tweetImages}
-                onImageUpload={handleImageUpload}
-                onImageRemove={handleImageRemove}
-                onTweetUpdate={handleTweetUpdate}
-              />
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <ThreadPreview
+                  thread={thread}
+                  tweetImages={tweetImages}
+                  onImageUpload={handleImageUpload}
+                  onImageRemove={handleImageRemove}
+                  onTweetUpdate={handleTweetUpdate}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Publish Modal */}
+      {/* Modals */}
       <PublishModal
         isOpen={showPublishModal}
         onClose={() => setShowPublishModal(false)}
