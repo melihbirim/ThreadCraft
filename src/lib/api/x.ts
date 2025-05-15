@@ -28,8 +28,9 @@ interface TwitterV2Response {
 
 // Rate limit handling constants
 const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY = 1000; // 1 second
-const TWEET_INTERVAL_DELAY = 2000; // 2 seconds between tweets
+const INITIAL_RETRY_DELAY = 5000; // 5 seconds
+const TWEET_INTERVAL_DELAY = 5000; // 5 seconds between tweets
+const RATE_LIMIT_BACKOFF_MULTIPLIER = 2;
 
 /**
  * Sleep for a specified duration
@@ -40,7 +41,8 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * Handle rate limiting with exponential backoff
  */
 async function handleRateLimit(retryCount: number): Promise<number> {
-    const delay = INITIAL_RETRY_DELAY * Math.pow(2, retryCount);
+    const delay = INITIAL_RETRY_DELAY * Math.pow(RATE_LIMIT_BACKOFF_MULTIPLIER, retryCount);
+    console.log(`Rate limit hit. Waiting ${delay/1000} seconds before retry ${retryCount + 1}/${MAX_RETRIES}...`);
     await sleep(delay);
     return delay;
 }
@@ -62,9 +64,11 @@ export async function postThread({ thread, images, accessToken }: ThreadOptions)
 
     for (const [index, post] of thread.entries()) {
         let success = false;
+        retryCount = 0; // Reset retry count for each new tweet
 
         // Add delay between tweets to avoid rate limits
         if (index > 0) {
+            console.log(`Waiting ${TWEET_INTERVAL_DELAY/1000} seconds before posting next tweet...`);
             await sleep(TWEET_INTERVAL_DELAY);
         }
 
@@ -72,8 +76,11 @@ export async function postThread({ thread, images, accessToken }: ThreadOptions)
             try {
                 console.log(`Posting tweet ${index + 1}/${thread.length}...`);
                 
-                // Prepare post text with thread numbering
-                const postText = `${post}\n\n🧵 ${index + 1}/${thread.length}`;
+                // Add thread numbering and #threadcraftx hashtag only to the last tweet
+                const isLastTweet = index === thread.length - 1;
+                const postText = isLastTweet
+                    ? `${post}\n\n🧵 ${index + 1}/${thread.length} #threadcraftx`
+                    : `${post}\n\n🧵 ${index + 1}/${thread.length}`;
 
                 // Prepare post data
                 const postData: any = {
@@ -126,6 +133,35 @@ export async function postThread({ thread, images, accessToken }: ThreadOptions)
                 if (!response.ok) {
                     // Handle rate limiting
                     if (response.status === 429) {
+                        // Check if it's a daily tweet limit
+                        const dailyLimit = response.headers.get('x-user-limit-24hour-limit');
+                        const dailyRemaining = response.headers.get('x-user-limit-24hour-remaining');
+                        const dailyReset = response.headers.get('x-user-limit-24hour-reset');
+                        
+                        if (dailyLimit && dailyRemaining === '0') {
+                            const resetTime = new Date(parseInt(dailyReset!) * 1000);
+                            const resetTimeStr = resetTime.toLocaleString();
+                            throw new Error(`Daily tweet limit (${dailyLimit} tweets) reached. Limit will reset at ${resetTimeStr}`);
+                        }
+
+                        // Log rate limit headers
+                        console.log('Rate limit headers:', {
+                            'x-rate-limit-limit': response.headers.get('x-rate-limit-limit'),
+                            'x-rate-limit-remaining': response.headers.get('x-rate-limit-remaining'),
+                            'x-rate-limit-reset': response.headers.get('x-rate-limit-reset'),
+                            'x-user-limit-24hour-limit': dailyLimit,
+                            'x-user-limit-24hour-remaining': dailyRemaining,
+                            'x-user-limit-24hour-reset': dailyReset
+                        });
+
+                        // Log full error response
+                        console.log('Twitter API Error Response:', {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: Object.fromEntries(response.headers.entries()),
+                            data: responseData
+                        });
+
                         if (retryCount < MAX_RETRIES) {
                             const delay = await handleRateLimit(retryCount);
                             console.log(`Rate limited. Retrying tweet ${index + 1} in ${delay}ms...`);

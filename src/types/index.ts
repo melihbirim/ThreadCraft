@@ -4,6 +4,7 @@ export interface AISettings {
   useEmojis: boolean
   aiRate: number // 0-100
   model?: 'grok-2-1212' | 'grok-3' | 'grok-3-fast' | 'grok-3-mini' | 'grok-3-mini-fast'
+  suggestHashtags?: boolean // Whether to suggest relevant hashtags
 }
 
 export interface Draft {

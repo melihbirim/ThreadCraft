@@ -62,12 +62,17 @@ function generateSystemPrompt(settings: AISettings): string {
     ? 'Include relevant emojis where appropriate'
     : 'Do not use emojis'
 
+  const hashtagGuide = settings.suggestHashtags
+    ? 'Suggest 2-3 relevant hashtags at the end of the thread (before the last tweet)'
+    : 'Do not add any hashtags'
+
   return `
     You are an expert at improving X (Twitter) threads. Help enhance the given text with these guidelines:
 
     Content Guidelines:
     - ${toneGuide[settings.tone]}
     - ${emojiGuide}
+    - ${hashtagGuide}
     - Each section should naturally fit within 280 characters
     - Maintain the original message's intent and key points
     - Focus on clarity, engagement, and readability
@@ -81,6 +86,7 @@ function generateSystemPrompt(settings: AISettings): string {
     - Keep paragraphs separated by blank lines
     - Preserve the natural flow of ideas
     - Focus on making each section impactful and self-contained
+    - If suggesting hashtags, make them relevant to the topic and trending
   `.trim()
 }
 

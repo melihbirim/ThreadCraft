@@ -7,9 +7,13 @@ import ClientLayout from './ClientLayout'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ThreadCraft - Write, Schedule, and Analyze X Posts',
+  metadataBase: new URL('https://threadcraftx.com'),
+  title: {
+    default: 'ThreadCraft - Write, Schedule, and Analyze X Posts',
+    template: '%s | ThreadCraft'
+  },
   description: 'Create engaging Twitter threads effortlessly with ThreadCraft. Write, schedule, and analyze your X posts with our AI-powered thread creation tool.',
-  keywords: 'Twitter threads, X threads, thread maker, social media tool, Twitter analytics, content creation, AI writing assistant',
+  keywords: ['Twitter threads', 'X threads', 'thread maker', 'social media tool', 'Twitter analytics', 'content creation', 'AI writing assistant'],
   authors: [{ name: 'Melih Birim', url: 'https://github.com/melihbirim' }],
   creator: 'Melih Birim',
   publisher: 'ThreadCraft',
@@ -27,18 +31,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://threadcraftx.com',
+    url: '/',
     siteName: 'ThreadCraft',
     title: 'ThreadCraft - Write Better Twitter Threads',
     description: 'Create engaging Twitter threads effortlessly with ThreadCraft. Write, schedule, and analyze your X posts with our AI-powered thread creation tool.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'ThreadCraft - Twitter Thread Creation Tool',
-      },
-    ],
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'ThreadCraft - Twitter Thread Creation Tool'
+    }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -51,10 +53,6 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     shortcut: '/favicon-32x32.png',
     apple: '/apple-touch-icon.png',
-    other: {
-      rel: 'apple-touch-icon-precomposed',
-      url: '/apple-touch-icon-precomposed.png',
-    },
   },
   manifest: '/manifest.json',
   viewport: {

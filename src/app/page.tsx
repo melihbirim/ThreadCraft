@@ -45,7 +45,8 @@ export default function Home() {
     model: 'grok-2-1212',
     tone: 'professional',
     useEmojis: true,
-    aiRate: 50
+    aiRate: 50,
+    suggestHashtags: true
   })
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [publishedThreadUrl, setPublishedThreadUrl] = useState<string>()

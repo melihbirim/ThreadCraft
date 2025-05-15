@@ -301,6 +301,22 @@ export function Sidebar({
                     </label>
                   </div>
 
+                  {/* Hashtag Suggestion Toggle */}
+                  <div className="mb-6">
+                    <label className="flex items-center text-[14px] font-medium text-gray-800">
+                      <input
+                        type="checkbox"
+                        checked={aiSettings.suggestHashtags}
+                        onChange={(e) => onAISettingsChange({
+                          ...aiSettings,
+                          suggestHashtags: e.target.checked
+                        })}
+                        className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      Suggest Hashtags
+                    </label>
+                  </div>
+
                   {/* AI Rate Slider */}
                   <div className="mb-4">
                     <label className="block text-[14px] font-medium text-gray-800 mb-2">
