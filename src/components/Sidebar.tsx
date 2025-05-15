@@ -90,10 +90,10 @@ export function Sidebar({
       <div 
         className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r shadow-lg transition-transform duration-200 ease-in-out ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } w-full sm:w-80 lg:w-96 flex flex-col overflow-hidden z-40`}
+        } w-full sm:w-80 lg:w-96 flex flex-col z-40`}
       >
         {/* My Threads Section - Fixed Header */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex flex-col h-full">
           <div className="p-4 border-b flex-none bg-white">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">My Threads</h3>
@@ -110,75 +110,77 @@ export function Sidebar({
           </div>
 
           {/* Threads List - Scrollable Content */}
-          <div className="flex-1 overflow-y-auto min-h-0 overscroll-contain">
-            <div className="p-4 space-y-2">
-              <button 
-                className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[15px] flex items-center justify-between transition-colors duration-200"
-                onClick={() => setShowDrafts(!showDrafts)}
-              >
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M18 2L22 6M22 2L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Drafts ({drafts.length})
-                </span>
-                <span className="text-xs text-gray-400">{showDrafts ? '▼' : '▶'}</span>
-              </button>
-              
-              {/* Drafts List */}
-              {showDrafts && (
-                <div className="pl-2 space-y-1">
-                  {drafts.map(draft => (
-                    <div
-                      key={draft.id}
-                      className={`p-2.5 rounded-lg cursor-pointer text-[15px] hover:bg-gray-50 transition-colors duration-200 ${
-                        currentDraftId === draft.id ? 'bg-gray-50 shadow-sm' : ''
-                      }`}
-                      onClick={() => onDraftSelect(draft)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 mr-2">
-                          <div className="font-medium text-gray-900">{draft.title || 'Untitled'}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {formatDistanceToNow(new Date(draft.updatedAt), { addSuffix: true })}
+          <div className="flex-1 overflow-hidden">
+            <div className="h-[calc(100vh-20rem)] overflow-y-auto">
+              <div className="p-4 space-y-2">
+                <button 
+                  className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[15px] flex items-center justify-between transition-colors duration-200"
+                  onClick={() => setShowDrafts(!showDrafts)}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M18 2L22 6M22 2L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Drafts ({drafts.length})
+                  </span>
+                  <span className="text-xs text-gray-400">{showDrafts ? '▼' : '▶'}</span>
+                </button>
+                
+                {/* Drafts List */}
+                {showDrafts && (
+                  <div className="pl-2 space-y-1">
+                    {drafts.map(draft => (
+                      <div
+                        key={draft.id}
+                        className={`p-2.5 rounded-lg cursor-pointer text-[15px] hover:bg-gray-50 transition-colors duration-200 ${
+                          currentDraftId === draft.id ? 'bg-gray-50 shadow-sm' : ''
+                        }`}
+                        onClick={() => onDraftSelect(draft)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 mr-2">
+                            <div className="font-medium text-gray-900">{draft.title || 'Untitled'}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {formatDistanceToNow(new Date(draft.updatedAt), { addSuffix: true })}
+                            </div>
                           </div>
+                          <button
+                            className="text-gray-400 hover:text-red-500 text-sm p-1 transition-colors duration-200"
+                            onClick={(e) => handleDeleteDraft(e, draft.id)}
+                          >
+                            ×
+                          </button>
                         </div>
-                        <button
-                          className="text-gray-400 hover:text-red-500 text-sm p-1 transition-colors duration-200"
-                          onClick={(e) => handleDeleteDraft(e, draft.id)}
-                        >
-                          ×
-                        </button>
                       </div>
-                    </div>
-                  ))}
-                  {drafts.length === 0 && (
-                    <div className="text-gray-500 text-sm p-2.5">No drafts yet</div>
-                  )}
-                </div>
-              )}
-
-              <button 
-                className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[15px] flex items-center justify-between transition-colors duration-200"
-                onClick={() => setShowPublished(!showPublished)}
-              >
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Published
-                </span>
-                <span className="text-xs text-gray-400">{showPublished ? '▼' : '▶'}</span>
-              </button>
-              
-              {showPublished && (
-                <div className="pl-2">
-                  <div className="text-gray-500 text-sm p-2.5">
-                    Coming soon...
+                    ))}
+                    {drafts.length === 0 && (
+                      <div className="text-gray-500 text-sm p-2.5">No drafts yet</div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+
+                <button 
+                  className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[15px] flex items-center justify-between transition-colors duration-200"
+                  onClick={() => setShowPublished(!showPublished)}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Published
+                  </span>
+                  <span className="text-xs text-gray-400">{showPublished ? '▼' : '▶'}</span>
+                </button>
+                
+                {showPublished && (
+                  <div className="pl-2">
+                    <div className="text-gray-500 text-sm p-2.5">
+                      Coming soon...
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
