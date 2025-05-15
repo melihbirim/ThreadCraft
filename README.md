@@ -2,6 +2,33 @@
 
 A free, open-source tool for writing, scheduling, and analyzing X posts, deployable on Vercel.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmelihbirim%2FThreadCraft&env=TWITTER_CLIENT_ID,TWITTER_CLIENT_SECRET,NEXTAUTH_SECRET&envDescription=API%20keys%20needed%20for%20ThreadCraft%20to%20work&envLink=https%3A%2F%2Fgithub.com%2Fmelihbirim%2FThreadCraft%2Fblob%2Fmain%2F.env.example&project-name=threadcraft&repository-name=threadcraft&demo-title=ThreadCraft&demo-description=An%20open-source%20tool%20for%20writing%2C%20scheduling%2C%20and%20analyzing%20X%20posts&demo-url=https%3A%2F%2Fthread-craft-nine.vercel.app&demo-image=https%3A%2F%2Fthread-craft-nine.vercel.app%2Fog-image.png)
+
+## About
+
+ThreadCraft is an open-source project that aims to make thread creation and management on X (formerly Twitter) easier and more efficient. The project is maintained by [Melih Birim](https://github.com/melihbirim) and is open for contributions from the community.
+
+### Open Source
+
+This project is completely open source and free to use. You can:
+- Fork and modify the code
+- Deploy your own instance
+- Contribute to the project
+- Report issues and suggest features
+
+Source Code: [github.com/melihbirim/ThreadCraft](https://github.com/melihbirim/ThreadCraft)
+
+### Quick Deploy
+
+You can deploy your own instance of ThreadCraft with one click using Vercel:
+
+1. Click the "Deploy with Vercel" button above
+2. Set up your environment variables:
+   - `TWITTER_CLIENT_ID`: Your X (Twitter) OAuth client ID
+   - `TWITTER_CLIENT_SECRET`: Your X (Twitter) OAuth client secret
+   - `NEXTAUTH_SECRET`: A secure random string (generate with `openssl rand -base64 32`)
+3. Deploy and start using your own instance!
+
 ## Features
 
 - **Write Posts**: Compose and edit your X posts with our intuitive editor. In-Progress
