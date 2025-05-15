@@ -212,7 +212,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-[calc(100vh-4rem)]">
       {/* Sidebar */}
       <Sidebar 
         aiSettings={aiSettings} 
@@ -226,9 +226,6 @@ export default function Home() {
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
-            <Header />
-            <p className="text-gray-600 mb-8">Write and split your X threads with ease</p>
-
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left column - Editor */}
