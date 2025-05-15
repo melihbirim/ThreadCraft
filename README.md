@@ -30,7 +30,7 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
    NEXTAUTH_SECRET=your_generated_secret # Generate with: openssl rand -base64 32
    NEXTAUTH_URL=http://localhost:3000 # In development
 
-   # X (Twitter) OAuth 1.0a credentials
+   # X (Twitter) OAuth 2.0 credentials
    TWITTER_CLIENT_ID=your_twitter_client_id
    TWITTER_CLIENT_SECRET=your_twitter_client_secret
    ```
@@ -38,7 +38,7 @@ A free, open-source tool for writing, scheduling, and analyzing X posts, deploya
    To get X (Twitter) credentials:
    1. Go to the [X Developer Portal](https://developer.twitter.com/en/portal/dashboard)
    2. Create a new project and app
-   3. Enable OAuth 1.0a (User Authentication)
+   3. Enable OAuth 2.0 (User Authentication)
    4. Set App Permissions to "Read and Write"
    5. Add the following callback URL:
       - Development: `http://localhost:3000/api/auth/callback/twitter`
