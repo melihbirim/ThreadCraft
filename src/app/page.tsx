@@ -224,13 +224,13 @@ export default function Home() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 h-[calc(100vh-4rem)]">
-        <div className="container mx-auto px-6 py-8 h-full">
+      <div className="flex-1 h-[calc(100vh-4rem)] bg-surface-50">
+        <div className="container mx-auto px-6 py-6 h-full">
           <div className="max-w-7xl mx-auto h-full">
             {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
               {/* Left column - Editor */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 overflow-auto">
+              <div className="bg-white rounded-2xl shadow-soft p-6 border border-surface-200/50 flex flex-col h-full backdrop-blur-sm backdrop-saturate-200">
                 <ThreadEditor
                   fullText={fullText}
                   setFullText={setFullText}
@@ -243,7 +243,7 @@ export default function Home() {
               </div>
 
               {/* Right column - Preview */}
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 overflow-auto">
+              <div className="bg-white rounded-2xl shadow-soft p-6 border border-surface-200/50 overflow-auto backdrop-blur-sm backdrop-saturate-200">
                 <ThreadPreview
                   thread={thread}
                   tweetImages={tweetImages}

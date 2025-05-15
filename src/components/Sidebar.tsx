@@ -111,7 +111,7 @@ export function Sidebar({
         <div className="flex flex-col h-full">
           <div className="p-4 border-b flex-none bg-white">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">My Threads</h3>
+              <h3 className="text-base font-medium text-gray-800">My Threads</h3>
               <button
                 onClick={onNewThread}
                 className="w-8 h-8 flex items-center justify-center rounded-lg bg-black text-white hover:bg-gray-900 transition shadow-sm"
@@ -128,10 +128,10 @@ export function Sidebar({
           <div className="flex-1 overflow-y-auto">
             <div className="p-4 space-y-2">
               <button 
-                className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[15px] flex items-center justify-between transition-colors duration-200"
+                className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[14px] flex items-center justify-between transition-colors duration-200"
                 onClick={() => setShowDrafts(!showDrafts)}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 font-medium">
                   <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M11 4H4C3.44772 4 3 4.44772 3 5V19C3 19.5523 3.44772 20 4 20H18C18.5523 20 19 19.5523 19 19V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M18 2L22 6M22 2L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -147,15 +147,15 @@ export function Sidebar({
                   {drafts.map(draft => (
                     <div
                       key={draft.id}
-                      className={`p-2.5 rounded-lg cursor-pointer text-[15px] hover:bg-gray-50 transition-colors duration-200 ${
+                      className={`p-2.5 rounded-lg cursor-pointer text-[14px] hover:bg-gray-50 transition-colors duration-200 ${
                         currentDraftId === draft.id ? 'bg-gray-50 shadow-sm' : ''
                       }`}
                       onClick={() => onDraftSelect(draft)}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 mr-2">
-                          <div className="font-medium text-gray-900">{draft.title || 'Untitled'}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="font-medium text-gray-800">{draft.title || 'Untitled'}</div>
+                          <div className="text-xs text-gray-500 mt-1">
                             {formatDistanceToNow(new Date(draft.updatedAt), { addSuffix: true })}
                           </div>
                         </div>
@@ -169,16 +169,16 @@ export function Sidebar({
                     </div>
                   ))}
                   {drafts.length === 0 && (
-                    <div className="text-gray-500 text-sm p-2.5">No drafts yet</div>
+                    <div className="text-gray-500 text-[13px] p-2.5">No drafts yet</div>
                   )}
                 </div>
               )}
 
               <button 
-                className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[15px] flex items-center justify-between transition-colors duration-200"
+                className="w-full text-left p-2.5 hover:bg-gray-50 rounded-lg text-[14px] flex items-center justify-between transition-colors duration-200"
                 onClick={() => setShowPublished(!showPublished)}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 font-medium">
                   <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -189,7 +189,7 @@ export function Sidebar({
               
               {showPublished && (
                 <div className="pl-2">
-                  <div className="text-gray-500 text-sm p-2.5">
+                  <div className="text-gray-500 text-[13px] p-2.5">
                     Coming soon...
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export function Sidebar({
                 className="flex items-center justify-between w-full p-4 text-left hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-semibold text-gray-900">XAI Assistant</span>
+                  <span className="text-base font-medium text-gray-800">XAI Assistant</span>
                   <span className="text-sm text-gray-400">{showXAISection ? '▼' : '▶'}</span>
                 </div>
               </button>
@@ -219,12 +219,12 @@ export function Sidebar({
               >
                 <div className="p-4 bg-white">
                   {/* API Key Input */}
-                  <div className="mb-4">
+                  <div className="mb-6">
                     {showApiInput ? (
                       <input
                         type="password"
                         placeholder="Enter XAI API Key"
-                        className="w-full p-2.5 border rounded-lg text-[15px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        className="w-full p-2.5 border rounded-lg text-[14px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         value={aiSettings.apiKey}
                         onChange={(e) => onAISettingsChange({...aiSettings, apiKey: e.target.value})}
                         style={{ fontFamily: 'inherit' }}
@@ -232,16 +232,16 @@ export function Sidebar({
                     ) : (
                       <Button 
                         onClick={() => setShowApiInput(true)}
-                        className="w-full text-[15px] rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                        className="w-full text-[14px] rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
                       >
                         {aiSettings.apiKey ? 'Update API Key' : 'Add API Key'}
                       </Button>
                     )}
                   </div>
 
-                  {/* Model Selection as Tags */}
-                  <div className="mb-4">
-                    <label className="block text-[15px] text-gray-700 mb-2">Model</label>
+                  {/* Model Selection */}
+                  <div className="mb-6">
+                    <label className="block text-[14px] font-medium text-gray-800 mb-2">Model</label>
                     <div className="flex flex-wrap gap-2">
                       {models.map(model => (
                         <button
@@ -252,8 +252,8 @@ export function Sidebar({
                           })}
                           className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-200 ${
                             aiSettings.model === model.value
-                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
-                              : 'bg-gray-100 text-gray-700 border-2 border-gray-200 hover:bg-gray-200'
+                              ? 'bg-blue-50 text-blue-700 border-2 border-blue-200 shadow-sm'
+                              : 'bg-gray-50 text-gray-600 border-2 border-gray-100 hover:bg-gray-100 hover:border-gray-200'
                           }`}
                         >
                           {model.label}
@@ -262,9 +262,9 @@ export function Sidebar({
                     </div>
                   </div>
 
-                  {/* Tone Selection as Tags */}
-                  <div className="mb-4">
-                    <label className="block text-[15px] text-gray-700 mb-2">Tone</label>
+                  {/* Tone Selection */}
+                  <div className="mb-6">
+                    <label className="block text-[14px] font-medium text-gray-800 mb-2">Tone</label>
                     <div className="flex flex-wrap gap-2">
                       {tones.map(tone => (
                         <button
@@ -275,8 +275,8 @@ export function Sidebar({
                           })}
                           className={`px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-200 ${
                             aiSettings.tone === tone.value
-                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-200'
-                              : 'bg-gray-100 text-gray-700 border-2 border-gray-200 hover:bg-gray-200'
+                              ? 'bg-blue-50 text-blue-700 border-2 border-blue-200 shadow-sm'
+                              : 'bg-gray-50 text-gray-600 border-2 border-gray-100 hover:bg-gray-100 hover:border-gray-200'
                           }`}
                         >
                           {tone.label}
@@ -286,8 +286,8 @@ export function Sidebar({
                   </div>
 
                   {/* Emoji Toggle */}
-                  <div className="mb-4">
-                    <label className="flex items-center text-[15px] text-gray-700">
+                  <div className="mb-6">
+                    <label className="flex items-center text-[14px] font-medium text-gray-800">
                       <input
                         type="checkbox"
                         checked={aiSettings.useEmojis}
@@ -303,7 +303,7 @@ export function Sidebar({
 
                   {/* AI Rate Slider */}
                   <div className="mb-4">
-                    <label className="block text-[15px] text-gray-700 mb-2">
+                    <label className="block text-[14px] font-medium text-gray-800 mb-2">
                       AI Assistance Level: {aiSettings.aiRate}%
                     </label>
                     <input
@@ -317,7 +317,7 @@ export function Sidebar({
                       })}
                       className="w-full accent-blue-600"
                     />
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-[13px] text-gray-500 mt-1">
                       Higher = More aggressive corrections
                     </div>
                   </div>

@@ -64,19 +64,22 @@ export function ThreadEditor({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-3">
-          <label className="text-lg font-semibold text-gray-900">
+      <div className="flex-none">
+        <div className="flex items-center justify-between mb-4">
+          <label className="text-base font-medium text-gray-800">
             Write your thread
           </label>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
             {fullText.length} characters
           </span>
         </div>
-        <div className="grid h-[calc(100%-2rem)]">
+      </div>
+
+      <div className="flex-1 min-h-0">
+        <div className="h-full relative">
           <textarea
             ref={textareaRef}
-            className="w-full h-full p-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 resize-none shadow-sm transition-colors duration-200"
+            className="w-full h-full p-5 border rounded-xl focus:ring-2 focus:ring-brand-600/20 focus:border-brand-600 bg-gray-50/50 resize-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] transition-colors duration-200"
             value={fullText}
             onChange={(e) => {
               const cleaned = cleanNewlines(e.target.value)
@@ -87,61 +90,43 @@ export function ThreadEditor({
             placeholder={PLACEHOLDER}
             style={{
               fontFamily: 'inherit',
-              fontSize: '15.5px',
-              lineHeight: '1.5',
-              gridArea: '1 / 1 / 2 / 2',
+              fontSize: '15px',
+              lineHeight: '1.6',
             }}
           />
-          <div 
-            className="invisible whitespace-pre-wrap break-words overflow-hidden"
-            style={{
-              gridArea: '1 / 1 / 2 / 2',
-              padding: '1rem',
-              fontFamily: 'inherit',
-              fontSize: '15.5px',
-              lineHeight: '1.5',
-            }}
-            aria-hidden="true"
-          >
-            {fullText || ' '}
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 mt-4 sticky bottom-0 bg-white pt-4 border-t">
-        <Button
-          className="flex-1 bg-black text-white hover:bg-gray-900 transition rounded-xl text-[15px] font-semibold py-3 shadow-sm"
-          onClick={onPublish}
-        >
-          Post Thread
-        </Button>
-        
-        {showAIButton && onAIGenerate && (
-          <Button
-            className="flex-1 bg-blue-600 text-white hover:bg-blue-700 transition rounded-xl text-[15px] font-semibold py-3 shadow-sm relative"
-            onClick={onAIGenerate}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <>
-                <span className="opacity-0">Improve with AI</span>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                </div>
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          
+          {/* Floating AI Button */}
+          {showAIButton && onAIGenerate && (
+            <button
+              onClick={onAIGenerate}
+              disabled={isGenerating}
+              className="absolute bottom-4 right-4 bg-black text-white rounded-full p-3 hover:bg-gray-900 transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-lg"
+              title="Improve with AI"
+            >
+              {isGenerating ? (
+                <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Improve with AI
-              </>
-            )}
-          </Button>
-        )}
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 mt-6 flex-none pt-4 border-t border-surface-200">
+        <Button
+          variant="dark"
+          size="lg"
+          className="flex-1"
+          onClick={onPublish}
+        >
+          Post Thread
+        </Button>
       </div>
     </div>
   )

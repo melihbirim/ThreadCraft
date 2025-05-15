@@ -8,6 +8,7 @@ interface ThreadPreviewProps {
   onImageUpload: (index: number, file: File) => void
   onImageRemove: (index: number) => void
   onTweetUpdate: (index: number, content: string) => void
+  onAIEnhance?: () => void
 }
 
 const LAYOUT = {
@@ -23,7 +24,8 @@ export function ThreadPreview({
   tweetImages, 
   onImageUpload, 
   onImageRemove, 
-  onTweetUpdate 
+  onTweetUpdate,
+  onAIEnhance 
 }: ThreadPreviewProps) {
   const { data: session } = useSession()
   const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([])
@@ -80,7 +82,6 @@ export function ThreadPreview({
 
   return (
     <div className="lg:border-l lg:pl-8">
-      <h2 className="text-xl font-semibold mb-6 text-center">Thread Preview</h2>
       <div className="space-y-4 flex flex-col items-center max-w-[368px] mx-auto">
         {thread.map((tweet, index) => (
           <div key={index} className="relative flex w-full items-start">
@@ -162,6 +163,15 @@ export function ThreadPreview({
             </div>
           </div>
         ))}
+        <button
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-primary to-primary/90 text-white rounded-xl hover:opacity-90 transition-opacity shadow-sm"
+          onClick={onAIEnhance}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.25 3.75H14.75M12 3.75V2M12 3.75C14.8995 3.75 17.25 6.10051 17.25 9C17.25 9.41421 17.5858 9.75 18 9.75H19.5C20.7426 9.75 21.75 10.7574 21.75 12C21.75 13.2426 20.7426 14.25 19.5 14.25H18C17.5858 14.25 17.25 14.5858 17.25 15C17.25 17.8995 14.8995 20.25 12 20.25C9.10051 20.25 6.75 17.8995 6.75 15C6.75 14.5858 6.41421 14.25 6 14.25H4.5C3.25736 14.25 2.25 13.2426 2.25 12C2.25 10.7574 3.25736 9.75 4.5 9.75H6C6.41421 9.75 6.75 9.41421 6.75 9C6.75 6.10051 9.10051 3.75 12 3.75ZM14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12Z" />
+          </svg>
+          Enhance with AI
+        </button>
       </div>
     </div>
   )
