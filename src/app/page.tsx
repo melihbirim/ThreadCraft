@@ -12,6 +12,7 @@ import { generateAIContent } from '@/lib/ai'
 import { saveDraft, updateDraft } from '@/lib/drafts'
 import { getStoredApiKey, setStoredApiKey } from '@/lib/storage'
 import { AISettings, Draft, TweetImage } from '@/types'
+import { SuccessDialog } from '@/components/SuccessDialog'
 
 const INITIAL_CONTENT = `🧵 Ready to craft an epic thread?
 
@@ -45,6 +46,10 @@ export default function Home() {
     useEmojis: true,
     aiRate: 50
   })
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [publishedThreadUrl, setPublishedThreadUrl] = useState<string>()
+  const [postedTweetsCount, setPostedTweetsCount] = useState<number>(0)
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   // Load stored API key on mount
   useEffect(() => {
@@ -145,20 +150,25 @@ export default function Home() {
   }
 
   const publishToX = async () => {
+    console.log('Current session:', session); // Log session data
+
     if (!session?.accessToken) {
-      signIn('twitter')
-      return
+      console.log('Missing access token, redirecting to sign in');
+      signIn('twitter');
+      return;
     }
 
-    if (thread.length === 0) return
+    if (thread.length === 0) return;
 
     try {
-      setIsPublishing(true)
+      setIsPublishing(true);
       const response = await fetch('/api/threads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.accessToken}`,
         },
+        credentials: 'include', // Include cookies in the request
         body: JSON.stringify({
           thread,
           images: Object.entries(tweetImages).map(([index, image]) => ({
@@ -166,29 +176,40 @@ export default function Home() {
             url: image.url,
           })),
         }),
-      })
+      });
 
       if (!response.ok) {
         const error = await response.json()
         throw new Error(error.error || 'Failed to post thread')
       }
 
+      const result = await response.json()
       setShowPublishModal(false)
-      setPublishSuccess(true)
+      
+      // Get the URL of the first tweet in the thread
+      const threadUrl = result[0]?.data?.id 
+        ? `https://twitter.com/i/web/status/${result[0].data.id}`
+        : undefined
+      
+      setPublishedThreadUrl(threadUrl)
+      setPostedTweetsCount(result.length)
+      setShowSuccessDialog(true)
+
+      // Reset the editor after a short delay
       setTimeout(() => {
-        setPublishSuccess(false)
         setThread([''])
         setFullText('')
         setTweetImages({})
         setCurrentDraftId(undefined)
-      }, 2500)
+      }, 500)
+
     } catch (error) {
-      console.error('Publishing error:', error)
-      alert(error instanceof Error ? error.message : 'Failed to publish thread')
+      console.error('Error publishing thread:', error);
+      setPublishError(error instanceof Error ? error.message : 'Failed to publish thread');
     } finally {
-      setIsPublishing(false)
+      setIsPublishing(false);
     }
-  }
+  };
 
   return (
     <div className="flex h-screen">
@@ -255,12 +276,18 @@ export default function Home() {
         </div>
       )}
 
-      {/* Success Toast */}
-      {publishSuccess && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50">
-          Thread published successfully!
-        </div>
-      )}
+      {/* Success Dialog */}
+      <SuccessDialog
+        isOpen={showSuccessDialog}
+        onClose={() => {
+          setShowSuccessDialog(false)
+          setPublishedThreadUrl(undefined)
+          setPostedTweetsCount(0)
+        }}
+        threadUrl={publishedThreadUrl}
+        totalTweets={thread.length}
+        postedTweets={postedTweetsCount}
+      />
     </div>
   )
 } 
