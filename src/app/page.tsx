@@ -42,6 +42,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [aiSettings, setAiSettings] = useState<AISettings>({
     apiKey: '',
+    model: 'grok-2-1212',
     tone: 'professional',
     useEmojis: true,
     aiRate: 50
@@ -212,7 +213,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
       <Sidebar 
         aiSettings={aiSettings} 
@@ -223,39 +224,40 @@ export default function Home() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-7xl mx-auto">
-            <Header />
-            <p className="text-gray-600 mb-8">Write and split your X threads with ease</p>
-
+      <div className="flex-1 h-[calc(100vh-4rem)] bg-surface-50">
+        <div className="container mx-auto px-6 py-6 h-full">
+          <div className="max-w-7xl mx-auto h-full">
             {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
               {/* Left column - Editor */}
-              <ThreadEditor
-                fullText={fullText}
-                setFullText={setFullText}
-                onSplit={(text) => setThread(splitTextToThread(text))}
-                onPublish={() => setShowPublishModal(true)}
-                onAIGenerate={handleAIGenerate}
-                isGenerating={isGenerating}
-                showAIButton={!!aiSettings.apiKey}
-              />
+              <div className="bg-white rounded-2xl shadow-soft p-6 border border-surface-200/50 flex flex-col h-full backdrop-blur-sm backdrop-saturate-200">
+                <ThreadEditor
+                  fullText={fullText}
+                  setFullText={setFullText}
+                  onSplit={(text) => setThread(splitTextToThread(text))}
+                  onPublish={() => setShowPublishModal(true)}
+                  onAIGenerate={handleAIGenerate}
+                  isGenerating={isGenerating}
+                  showAIButton={!!aiSettings.apiKey}
+                />
+              </div>
 
               {/* Right column - Preview */}
-              <ThreadPreview
-                thread={thread}
-                tweetImages={tweetImages}
-                onImageUpload={handleImageUpload}
-                onImageRemove={handleImageRemove}
-                onTweetUpdate={handleTweetUpdate}
-              />
+              <div className="bg-white rounded-2xl shadow-soft p-6 border border-surface-200/50 overflow-auto backdrop-blur-sm backdrop-saturate-200">
+                <ThreadPreview
+                  thread={thread}
+                  tweetImages={tweetImages}
+                  onImageUpload={handleImageUpload}
+                  onImageRemove={handleImageRemove}
+                  onTweetUpdate={handleTweetUpdate}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Publish Modal */}
+      {/* Modals */}
       <PublishModal
         isOpen={showPublishModal}
         onClose={() => setShowPublishModal(false)}

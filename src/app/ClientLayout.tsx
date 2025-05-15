@@ -1,6 +1,7 @@
 'use client'
 
 import { SessionProvider } from 'next-auth/react'
+import { Header } from '@/components/Header'
 
 export default function ClientLayout({
   children,
@@ -9,9 +10,12 @@ export default function ClientLayout({
 }) {
   return (
     <SessionProvider>
-      <main className="min-h-screen bg-gray-50">
-        {children}
-      </main>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="pt-16">
+          {children}
+        </main>
+      </div>
     </SessionProvider>
   )
 } 
