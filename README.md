@@ -2,6 +2,8 @@
 
 A free, open-source tool for writing, scheduling, and analyzing X posts, deployable on Vercel.
 
+An open source alternative to Typefully.
+
 ## Features
 
 - **Write Posts**: Compose and edit your X posts with our intuitive editor. In-Progress
